@@ -162,3 +162,9 @@ def get_graph():
                    })
 
     return g
+
+graph = get_graph()
+print graph.edges()
+
+for (x,y) in graph.edges():
+	print graph.edge[x][y]['tiempo']

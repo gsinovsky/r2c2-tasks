@@ -116,6 +116,12 @@ def find_path(source, dest):
     p[(0, source)] = -1
     visit = set()
     g = get_graph()
+
+    with open("sectorGraph/sectorGraphRevised.json") as data_file:
+        data = json.load(data_file)
+
+    sectorGraph = json_graph.adjacency_graph(data)
+
     # now = datetime.now() - timedelta(days=10)
     now = datetime(2015,05,07,15,00)
     print now
@@ -149,3 +155,6 @@ def find_path(source, dest):
             print cur, '->', succ, estimado
             print cur, '->', succ, cost
             heapq.heappush(q, (cost, succ))
+
+
+find_path("USB","El Cafetal")
