@@ -2,7 +2,7 @@
 
 import re, unicodedata
 from nltk.stem.snowball import SpanishStemmer
-from .spelling import correct, words, train
+from spelling import correct, words, train
 
 def remove_urls(tweet):
     # remove urls

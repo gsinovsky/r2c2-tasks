@@ -5,8 +5,8 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, B
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import relationship, backref
 
-from .db import Base, session
-from .utils import parse_datetime
+from db import Base, session
+from utils import parse_datetime
 class User(Base):
     """Modelo para usuario de Twitter"""
     __tablename__ = 'users'

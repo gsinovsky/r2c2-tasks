@@ -3,11 +3,11 @@
 from sklearn import cross_validation
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics import confusion_matrix, classification_report
-from .utils import load_file
-from .preprocess import process_tweet
+from utils import load_file
+from preprocess import process_tweet
 import matplotlib.pyplot as plt
 from plots import plot_learning_curve, plot_confusion_matrix
-from .utils import load_synonyms, load_words
+from utils import load_synonyms, load_words
 
 def word_matrix(corpus, vectorizer=None):
     if vectorizer is None:

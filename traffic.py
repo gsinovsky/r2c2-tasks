@@ -3,12 +3,15 @@ import heapq
 from datetime import datetime, timedelta
 from datetime import datetime, timedelta
 from sklearn.linear_model import LogisticRegression
-from .models import Tweet
-from .base import ClassifierWrapper
-from .retriever import related_tweets_window, related_tweets_time
-from .utils import color_code_text
-from .graph import get_graph
+from models import Tweet
+from base import ClassifierWrapper
+from retriever import related_tweets_window, related_tweets_time
+from utils import color_code_text
+from graph import get_graph
 import time
+import json
+from networkx.readwrite import json_graph
+
 
 TRAFFIC_WRAPPER = None
 RELEVANT_WRAPPER = None
@@ -156,5 +159,4 @@ def find_path(source, dest):
             print cur, '->', succ, cost
             heapq.heappush(q, (cost, succ))
 
-
-find_path("USB","El Cafetal")
+find_path("USB","El Cafetal").next()

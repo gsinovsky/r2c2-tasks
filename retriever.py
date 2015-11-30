@@ -2,9 +2,9 @@ import json
 import heapq
 from datetime import datetime, timedelta
 from sqlalchemy import or_, and_, Time, DateTime, Date, cast
-from .models import Tweet
-from .utils import color_code_text
-from .graph import get_graph
+from models import Tweet
+from utils import color_code_text
+from graph import get_graph
 
 def related_tweets(source, dest, since_date=None, before_date=None):
     '''Returns all related tweets for `via`.'''
