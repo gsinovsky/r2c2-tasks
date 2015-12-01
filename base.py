@@ -94,7 +94,7 @@ class ClassifierWrapper(object):
         print classification_report(y_test, y_pred,
                                     target_names=['verde', 'amarillo', 'rojo'])
         
-        plot_confusion_matrix(cm)
+        # plot_confusion_matrix(cm)
 
         return cm
 
@@ -108,10 +108,10 @@ class ClassifierWrapper(object):
         cv = cross_validation.ShuffleSplit(self.dataset.matrix.shape[0],
                                            n_iter=n_iter, test_size=test_size)
 
-        title = "Learning Curves (Logistic Regression)"
-        plot_learning_curve(self.clf, title,
-                        self.dataset.matrix, self.dataset.labels,
-                        cv=cv, n_jobs=4)        
+        # title = "Learning Curves (Logistic Regression)"
+        # plot_learning_curve(self.clf, title,
+        #                 self.dataset.matrix, self.dataset.labels,
+        #                 cv=cv, n_jobs=4)        
 
         scores = cross_validation.cross_val_score(self.clf,
                                                   self.dataset.matrix,
