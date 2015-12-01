@@ -53,8 +53,9 @@ class DataWrapper:
         self.vocab  = vocab
 
     def fromDict(self,attributesDictionary):
+        #filtering the attributes that were not defined for this class
         objDictionary = {(key,value) for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
-        self.__dict__.update(attributesDictionary)
+        self.__dict__.update(objDictionary)
 
     """
         dataset,dict y dict son atributos estaticos.
