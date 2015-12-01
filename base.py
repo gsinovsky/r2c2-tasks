@@ -90,7 +90,7 @@ class DataWrapper:
         return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
 
 
-class ClassifierWrapper(object):
+class ClassifierWrapper:
     '''A helper class to wrap all the stuff we are doing. This expects
     that the file that is passed each row is in the form [tweet, label]'''
 
@@ -102,21 +102,25 @@ class ClassifierWrapper(object):
     #     self.dict = load_synonyms('./datasets/sinonimos.csv')
     #     self.dict1 = load_words()
 
-    def __init__(self,clf=None,dataset=None,plot=False,_dict=load_synonyms('./datasets/sinonimos.csv'),dict1=load_words()):
+    def __init__(self,clf=None,dataset=None,plot=False,synonyms=None,words=None):
         self.clf = clf
         self.dataset = dataset
         self.plot = plot
-        self.dict = _dict
-        self.dict1 = load_words()
+        self.synonyms = synonyms
+        self.words = words
 
-    def fromDict(self,wrapperDict):
-        if 'clf' in wrapperDict:
-            self.clf = wrapperDict['clf']
-        if 'dataset' in wrapperDict:
-            dataWrapper = DataWrapper()
-            self.dataset = dataWrapper.fromDict(wrapperDict['dataset'])
-        if 'plot' in wrapperDict:
-            self.plot = wrapperDict['plot']
+    # def fromDict(self,wrapperDict):
+    #     if 'clf' in wrapperDict:
+    #         self.clf = wrapperDict['clf']
+    #     if 'dataset' in wrapperDict:
+    #         dataWrapper = DataWrapper()
+    #         self.dataset = dataWrapper.fromDict(wrapperDict['dataset'])
+    #     if 'plot' in wrapperDict:
+    #         self.plot = wrapperDict['plot']
+    def fromDict(self,attributesDictionary):
+        #filtering the attributes that were not defined for this class
+        objDictionary = {(key,value) for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        self.__dict__.update(objDictionary)
 
 
     def toDict(self):
@@ -172,3 +176,6 @@ class ClassifierWrapper(object):
 
     def predict1(self, value):
         return self.predict([value])[0]
+
+    def __repr__(self): 
+        return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
