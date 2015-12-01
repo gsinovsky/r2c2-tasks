@@ -24,40 +24,37 @@ def word_matrix(corpus, vectorizer=None):
 
     return vectorizer, X, vocab
 
-class DataWrapper(object):
+class DataWrapper:
     '''A helper class to wrap our data files and make them easier to
     use.'''
 
-    def __init__(self, filename, vectorizer=None):
-        self.dataset = list(load_file(filename))
-        self.dict = load_synonyms('./datasets/sinonimos.csv')
-        self.dict1 = load_words()
+    # def __init__(self, filename, vectorizer=None):
+    #     self.dataset = list(load_file(filename))
+    #     self.dict = load_synonyms('./datasets/sinonimos.csv')
+    #     self.dict1 = load_words()
 
-        if vectorizer is not None:
-            self.vectorizer = vectorizer
-            self.matrix = self.vectorizer.transform(self.processed_tweets)
-            self.vocab = vectorizer.get_feature_names()
+    #     if vectorizer is not None:
+    #         self.vectorizer = vectorizer
+    #         self.matrix = self.vectorizer.transform(self.processed_tweets)
+    #         self.vocab = vectorizer.get_feature_names()
 
-        else:
-            vectorizer, X, vocab = word_matrix(self.processed_tweets)
-            self.vectorizer = vectorizer
-            self.matrix = self.X = X
-            self.vocab = vocab
+    #     else:
+    #         vectorizer, X, vocab = word_matrix(self.processed_tweets)
+    #         self.vectorizer = vectorizer
+    #         self.matrix = self.X = X
+    #         self.vocab = vocab
 
-    def __init__(self,filename=None,vectorizer=None,_dict=load_synonyms('./datasets/sinonimos.csv'),dict1=load_words(),matrix=None,vocab=None):
-        self.dataset = filename
+    def __init__(self,dataset=None,vectorizer=None,synonyms=None,words=None,matrix=None,vocab=None):
+        self.dataset    = dataset
         self.vectorizer = vectorizer
-        self.dict = _dict
-        self.dict1 = dict1
+        self.synonyms   = synonyms
+        self.words  = words
         self.matrix = matrix
-        self.vocab = vocab
+        self.vocab  = vocab
 
-    def fromDict(self,wrapperDict):
-        if 'matrix' in wrapperDict:
-            self.matrix = wrapperDict['matrix']
-        if 'vocab' in wrapperDict:
-            self.vocab = wrapperDict['vocab']
-
+    def fromDict(self,attributesDictionary):
+        objDictionary = {(key,value) for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        self.__dict__.update(attributesDictionary)
 
     """
         dataset,dict y dict son atributos estaticos.
@@ -87,6 +84,9 @@ class DataWrapper(object):
             self._labels = [int(x[1]) for x in self.dataset]
 
         return self._labels
+
+    def __repr__(self): 
+        return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
 
 
 class ClassifierWrapper(object):
