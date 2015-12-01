@@ -12,6 +12,7 @@ def related_tweets(source, dest, since_date=None, before_date=None):
     if not graph.has_edge(source, dest):
         return
     keywords = graph[source][dest]['keywords']
+    print keywords
     filters = or_(*[Tweet.text.ilike('%%%s%%' % x) for x in keywords])
     qs = Tweet.query.filter(filters)
     if since_date is not None:

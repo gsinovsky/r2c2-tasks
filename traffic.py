@@ -120,10 +120,11 @@ def find_path(source, dest):
     visit = set()
     g = get_graph()
 
-    with open("sectorGraph/sectorGraphRevised.json") as data_file:
+    with open("sectorGraph/sectorGraphProcessed.json") as data_file:
         data = json.load(data_file)
 
     sectorGraph = json_graph.adjacency_graph(data)
+    g = sectorGraph
 
     # now = datetime.now() - timedelta(days=10)
     now = datetime(2015,05,07,15,00)
@@ -153,10 +154,11 @@ def find_path(source, dest):
                                      before.strftime('%H:%M:00'),
                                      after.strftime('%H:%M:00'))
             estimado = (1-phi(t))*ACTUAL + phi(t)*HIST
-            cost = t + g[cur][succ]['tiempo'] + g[cur][succ]['p'](estimado)
+            congestionValue = g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
+            cost = t + g[cur][succ]['travelTime'] + congestionValue 
             p[(cost, succ)] = node
             print cur, '->', succ, estimado
             print cur, '->', succ, cost
             heapq.heappush(q, (cost, succ))
 
-find_path("USB","El Cafetal").next()
+find_path("El Placer","Guayabitos").next()

@@ -1,4 +1,6 @@
 import networkx as nx
+import json
+from networkx.readwrite import json_graph
 
 subs = {
     'santa': 'sta',
@@ -151,17 +153,21 @@ def transform(keywords):
     return new_keywords
 
 def get_graph():
-    g = nx.Graph()
-    for edge in graph_description:
-        keywords = transform([x.strip().lower() for x in edge['keywords']])
-        g.add_edge(edge['from'], edge['to'],
-                   {
-                       'keywords': keywords,
-                       'tiempo': edge['tiempo'],
-                       'p': edge['p']
-                   })
+    # g = nx.Graph()
+    # for edge in graph_description:
+    #     keywords = transform([x.strip().lower() for x in edge['keywords']])
+    #     g.add_edge(edge['from'], edge['to'],
+    #                {
+    #                    'keywords': keywords,
+    #                    'tiempo': edge['tiempo'],
+    #                    'p': edge['p']
+    #                })
+    with open("sectorGraph/sectorGraphProcessed.json") as data_file:
+        data = json.load(data_file)
 
-    return g
+    sectorGraph = json_graph.adjacency_graph(data)
+
+    return sectorGraph
 
 # graph = get_graph()
 # print graph.edges()
