@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from datetime import datetime, timedelta
 from sklearn.linear_model import LogisticRegression
 from models import Tweet
-from base import ClassifierWrapper
+from base import ClassifierWrapper,DataWrapper
 from retriever import related_tweets_window, related_tweets_time
 from utils import color_code_text
 from graph import get_graph
@@ -28,6 +28,11 @@ def get_relevant(**kwargs):
         wrapper.train()
         # print time.time() - t0, "seconds from relevant classifier"
         RELEVANT_WRAPPER = wrapper
+        with open('relevant_wrapper.json', 'w') as rw_json:
+            json.dump(RELEVANT_WRAPPER.toDict(), rw_json)
+        # with open('relevant_wrapper.json','r+') as rwjson:
+        #     classifierwrapper = json.load(rwjson)
+        #     print ClassifierWrapper(classifierwrapper['clf'],'./datasets/relevant.csv')
     return RELEVANT_WRAPPER
 
 def get_traffic(**kwargs):
@@ -35,13 +40,18 @@ def get_traffic(**kwargs):
     # t0 = time.time()
     if TRAFFIC_WRAPPER is None:
         clf = kwargs.pop('clf', LogisticRegression(C=8.5))
-        wrapper = ClassifierWrapper(clf, './datasets/traffic2.csv')
+        wrapper = ClassifierWrapper(clf, DataWrapper('./datasets/traffic2.csv'))
         cross_validate = kwargs.pop('cross_validate', True)
         if cross_validate:
             wrapper.cross_validate()
         wrapper.train()
         # print time.time() - t0, "seconds from the multiclass classifier"
         TRAFFIC_WRAPPER = wrapper
+        with open('traffic_wrapper.json', 'w') as rw_json:
+            json.dump(TRAFFIC_WRAPPER.toDict(), rw_json)
+        # with open('traffic_wrapper.json','r+') as rwjson:
+        #     classifierwrapper = json.load(rwjson)
+        #     print ClassifierWrapper(classifierwrapper['clf'],'./datasets/relevant.csv')
     return TRAFFIC_WRAPPER
 
 def get_score(tweets):
@@ -123,8 +133,8 @@ def find_path(source, dest):
     with open("sectorGraph/sectorGraphProcessed.json") as data_file:
         data = json.load(data_file)
 
-    sectorGraph = json_graph.adjacency_graph(data)
-    g = sectorGraph
+   # sectorGraph = json_graph.adjacency_graph(data)
+    #g = sectorGraph
 
     # now = datetime.now() - timedelta(days=10)
     now = datetime(2015,05,07,15,00)
@@ -150,15 +160,16 @@ def find_path(source, dest):
             before = currently + timedelta(minutes=-10)
             after = currently + timedelta(minutes=10)
             print 'HISTORICO'
-            HIST = get_historic_score(cur, succ,
+            """ HIST = get_historic_score(cur, succ,
                                      before.strftime('%H:%M:00'),
                                      after.strftime('%H:%M:00'))
-            estimado = (1-phi(t))*ACTUAL + phi(t)*HIST
-            congestionValue = g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
+            """
+            estimado = (1-phi(t))*ACTUAL + phi(t)*0.6#HIST
+            congestionValue = g[cur][succ]['travelTime']*0.03#g[cur][succ]['p'](estimado)#g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
             cost = t + g[cur][succ]['travelTime'] + congestionValue 
             p[(cost, succ)] = node
             print cur, '->', succ, estimado
             print cur, '->', succ, cost
             heapq.heappush(q, (cost, succ))
 
-find_path("El Placer","Guayabitos").next()
+print find_path("El Cafetal","Los Ruices").next()

@@ -3,11 +3,14 @@
 from sklearn import cross_validation
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.externals import joblib
 from utils import load_file
 from preprocess import process_tweet
 import matplotlib.pyplot as plt
 from plots import plot_learning_curve, plot_confusion_matrix
 from utils import load_synonyms, load_words
+import pickle
+import cPickle
 
 def word_matrix(corpus, vectorizer=None):
     if vectorizer is None:
@@ -41,6 +44,28 @@ class DataWrapper(object):
             self.matrix = self.X = X
             self.vocab = vocab
 
+    def __init__(self,filename=None,vectorizer=None,_dict=load_synonyms('./datasets/sinonimos.csv'),dict1=load_words(),matrix=None,vocab=None):
+        self.dataset = filename
+        self.vectorizer = vectorizer
+        self.dict = _dict
+        self.dict1 = dict1
+        self.matrix = matrix
+        self.vocab = vocab
+
+    def fromDict(self,wrapperDict):
+        if 'matrix' in wrapperDict:
+            self.matrix = wrapperDict['matrix']
+        if 'vocab' in wrapperDict:
+            self.vocab = wrapperDict['vocab']
+
+
+    """
+        dataset,dict y dict son atributos estaticos.
+        Los atributos matrix y vocab son producto del procesamiento de los tweets
+        en consecuencia solo nos interesa guardar estos datos
+    """
+    def toDict(self):
+        return {'matrix':cPickle.dumps(self.matrix),'vocab':self.vocab}
 
     @property
     def tweets(self):
@@ -69,12 +94,32 @@ class ClassifierWrapper(object):
     that the file that is passed each row is in the form [tweet, label]'''
 
 
-    def __init__(self, clf, filename, plot=False):
+    # def __init__(self, clf, filename, plot=False):
+    #     self.clf = clf
+    #     self.dataset = DataWrapper(filename)
+    #     self.plot = plot
+    #     self.dict = load_synonyms('./datasets/sinonimos.csv')
+    #     self.dict1 = load_words()
+
+    def __init__(self,clf=None,dataset=None,plot=False,_dict=load_synonyms('./datasets/sinonimos.csv'),dict1=load_words()):
         self.clf = clf
-        self.dataset = DataWrapper(filename)
+        self.dataset = dataset
         self.plot = plot
-        self.dict = load_synonyms('./datasets/sinonimos.csv')
+        self.dict = _dict
         self.dict1 = load_words()
+
+    def fromDict(self,wrapperDict):
+        if 'clf' in wrapperDict:
+            self.clf = wrapperDict['clf']
+        if 'dataset' in wrapperDict:
+            dataWrapper = DataWrapper()
+            self.dataset = dataWrapper.fromDict(wrapperDict['dataset'])
+        if 'plot' in wrapperDict:
+            self.plot = wrapperDict['plot']
+
+
+    def toDict(self):
+        return {'clf':pickle.dumps(self.clf),'dataset':self.dataset.toDict(),'plot':self.plot}
 
     def vtransform(self, tweets):
         return self.dataset.vectorizer.transform([process_tweet(x, self.dict, self.dict1) for x in tweets])
