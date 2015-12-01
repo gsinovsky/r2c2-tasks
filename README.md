@@ -1,6 +1,11 @@
 # tesis
 Continuation of R2C2
 
+### GFORTRAN INSTALLATION
+
+    sudo apt-get install gfortran
+
+
 ### SKLEARN INSTALLATION
 
     sudo aptitude install build-essential
