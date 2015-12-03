@@ -39,3 +39,15 @@ classifierWrapper = ClassifierWrapper()
 classifierWrapperDict = {'plot':True}
 classifierWrapper.fromDict(classifierWrapperDict)
 print classifierWrapper
+
+"""
+	Testing Decoders
+"""
+with open('relevant_wrapper.json','r+') as rwjson:
+    classifierWrapper = ClassifierWrapper()
+    classifierWrapper.jsonLoads(rwjson.read())
+    print classifierWrapper.dataset.vocab
+
+with open('traffic_wrapper.json','r+') as rwjson:
+	classifierWrapper = ClassifierWrapper()
+	classifierWrapper.jsonLoads(rwjson.read())

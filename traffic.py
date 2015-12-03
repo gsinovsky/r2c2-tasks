@@ -11,7 +11,7 @@ from graph import get_graph
 import time
 import json
 from networkx.readwrite import json_graph
-
+from utils import load_file,load_synonyms, load_words
 
 TRAFFIC_WRAPPER = None
 RELEVANT_WRAPPER = None
@@ -20,8 +20,16 @@ def get_relevant(**kwargs):
     global RELEVANT_WRAPPER
     # t0 = time.time()
     if RELEVANT_WRAPPER is None:
+        synonyms = load_synonyms('./datasets/sinonimos.csv')
+        words = load_words()
+
         clf = kwargs.pop('clf', LogisticRegression(C=10))
-        wrapper = ClassifierWrapper(clf, './datasets/relevant.csv')
+        dataWrapperDataset = list(load_file('./datasets/relevant.csv'))
+        dataWrapper = DataWrapper(dataset=dataWrapperDataset,synonyms=synonyms,words=words)
+        dataWrapper.resolveMatrix()
+
+        wrapper = ClassifierWrapper(clf=clf,dataset=dataWrapper,synonyms=synonyms,words=words)
+
         cross_validate = kwargs.pop('cross_validate', False)
         if cross_validate:
             wrapper.cross_validate()
@@ -39,8 +47,15 @@ def get_traffic(**kwargs):
     global TRAFFIC_WRAPPER
     # t0 = time.time()
     if TRAFFIC_WRAPPER is None:
+        synonyms = load_synonyms('./datasets/sinonimos.csv')
+        words = load_words()
+
         clf = kwargs.pop('clf', LogisticRegression(C=8.5))
-        wrapper = ClassifierWrapper(clf, DataWrapper('./datasets/traffic2.csv'))
+        dataWrapperDataset = list(load_file('./datasets/traffic2.csv'))
+        dataWrapper = DataWrapper(dataset=dataWrapperDataset,synonyms=synonyms,words=words)
+        dataWrapper.resolveMatrix()
+
+        wrapper = ClassifierWrapper(clf=clf,dataset=dataWrapper,synonyms=synonyms,words=words)
         cross_validate = kwargs.pop('cross_validate', True)
         if cross_validate:
             wrapper.cross_validate()

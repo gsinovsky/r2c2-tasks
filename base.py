@@ -78,12 +78,22 @@ class DataWrapper(JSONSerializable):
         self.matrix = matrix
         self.vocab  = vocab
 
+    def resolveMatrix(self):
+        if self.vectorizer is not None:
+            self.matrix = self.vectorizer.transform(self.processed_tweets)
+            self.vocab = vectorizer.get_feature_names()
+        else:
+            vectorizer, X, vocab = word_matrix(self.processed_tweets)
+            self.vectorizer = vectorizer
+            self.matrix = self.X = X
+            self.vocab = vocab
+
     def fromDict(self,attributesDictionary):
         #filtering the attributes that were not defined for this class
         objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
         matrixKey = 'matrix'
         try:
-            cPickleStr = objDictionary[matrixKey] 
+            cPickleStr = str(objDictionary[matrixKey]) #pickle does not support unicode
             decodedMatrix = cPickle.loads(cPickleStr)
             objDictionary.update({matrixKey:decodedMatrix})
         except KeyError:
@@ -108,7 +118,7 @@ class DataWrapper(JSONSerializable):
     @property
     def processed_tweets(self):
         if not hasattr(self, '_processed_tweets'):
-            self._processed_tweets = [process_tweet(x, self.dict, self.dict1) for x in self.tweets]
+            self._processed_tweets = [process_tweet(x, self.synonyms, self.words) for x in self.tweets]
 
         return self._processed_tweets
 
@@ -153,6 +163,8 @@ class ClassifierWrapper(JSONSerializable):
     def fromDict(self,attributesDictionary):
         #filtering the attributes that were not defined for this class
         objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+
+        """ Decoding Dataset """
         datasetKey = 'dataset'
         try: 
             datasetJson = json.dumps(objDictionary[datasetKey])
@@ -161,6 +173,16 @@ class ClassifierWrapper(JSONSerializable):
             objDictionary.update({datasetKey:dataWrapper})
         except KeyError:
             objDictionary[datasetKey] = None
+
+        """ Decoding clf"""
+        clfKey = 'clf'
+        try:
+            pickleStr = str(objDictionary[clfKey]) #pickle does not support unicode
+            decodedClf = pickle.loads(pickleStr)
+            objDictionary.update({clfKey:decodedClf})
+        except KeyError:
+            objDictionary[clfKey] = None
+
         self.__dict__.update(objDictionary)
 
 
@@ -168,7 +190,7 @@ class ClassifierWrapper(JSONSerializable):
         return {'clf':pickle.dumps(self.clf),'dataset':self.dataset.toDict(),'plot':self.plot}
 
     def vtransform(self, tweets):
-        return self.dataset.vectorizer.transform([process_tweet(x, self.dict, self.dict1) for x in tweets])
+        return self.dataset.vectorizer.transform([process_tweet(x, self.synonyms, self.words) for x in tweets])
 
     def train(self, test_size=0.2, random_state=None):
         # Split dataset into training and validation.
