@@ -24,6 +24,25 @@ def word_matrix(corpus, vectorizer=None):
 
     return vectorizer, X, vocab
 
+class Serializable:
+
+    def fromDict(self,attributesDictionary):
+        #filtering the attributes that were not defined for this class
+        validClassDictionary = { key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__ }
+        print "validDict:\n%s" %(validClassDictionary)
+        objDictionary = { key:value if not isinstance(value,Serializable) else (key,value.fromDict(validClassDictionary))    
+                            for (key,value) in validClassDictionary.iteritems()             
+                        }
+
+        self.__dict__.update(objDictionary)
+
+    def toDict(self):
+        return self.__dict__
+
+    def __repr__(self): 
+        return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
+
+
 class DataWrapper:
     '''A helper class to wrap our data files and make them easier to
     use.'''
