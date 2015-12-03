@@ -1,21 +1,27 @@
-from base import DataWrapper,ClassifierWrapper,Serializable
+from base import DataWrapper,ClassifierWrapper,JSONSerializable
 
 """
 	Serializable Class Test
 """
-class myCustomSerializableObject(Serializable):
-	def __init__(self,quota=None,expired=False,obj=None):
+class myCustomSerializableObject(JSONSerializable):
+	def __init__(self,quota=None,expired=False):
 		self.quota = quota
 		self.expired = expired
-		self.obj = obj
-"""	
+
+	def fromDict(self,attributesDictionary):
+		self.__dict__.update(attributesDictionary)
+
+	def toDict(self):
+		return self.__dict__
+	
 serializableobj = myCustomSerializableObject(2)
-otherserializableobj = myCustomSerializableObject(3)
 print serializableobj
-print serializableobj.toDict()
-serializableobj.fromDict({'quota':6,'obj':otherserializableobj})
-print serializableobj
-"""
+print "toDic: %s" %(serializableobj.toDict())
+print "Json Dumps:%s" % (serializableobj.jsonDumps())
+
+serializableobj.jsonLoads(serializableobj.jsonDumps())
+print "JsonLoads:%s" %(serializableobj.toDict())
+
 
 """
 	DataWrapper Class Test

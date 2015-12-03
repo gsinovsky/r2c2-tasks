@@ -1,5 +1,5 @@
 # coding: utf-8
-
+from abc import ABCMeta,abstractmethod #Abstract Classes support
 from sklearn import cross_validation
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics import confusion_matrix, classification_report
@@ -11,6 +11,7 @@ from plots import plot_learning_curve, plot_confusion_matrix
 from utils import load_synonyms, load_words
 import pickle
 import cPickle
+import json
 
 def word_matrix(corpus, vectorizer=None):
     if vectorizer is None:
@@ -24,26 +25,32 @@ def word_matrix(corpus, vectorizer=None):
 
     return vectorizer, X, vocab
 
-class Serializable:
+"""
+    Abstract Class
+"""
+class JSONSerializable:
 
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
     def fromDict(self,attributesDictionary):
-        #filtering the attributes that were not defined for this class
-        validClassDictionary = { key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__ }
-        print "validDict:\n%s" %(validClassDictionary)
-        objDictionary = { key:value if not isinstance(value,Serializable) else (key,value.fromDict(validClassDictionary))    
-                            for (key,value) in validClassDictionary.iteritems()             
-                        }
+        raise NotImplementedError
 
-        self.__dict__.update(objDictionary)
-
+    @abstractmethod
     def toDict(self):
-        return self.__dict__
+        raise NotImplementedError
+
+    def jsonDumps(self):
+        return json.dumps(self.toDict())
+
+    def jsonLoads(self,jsonContent):
+        return self.fromDict(json.loads(jsonContent))
 
     def __repr__(self): 
         return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
 
 
-class DataWrapper:
+class DataWrapper(JSONSerializable):
     '''A helper class to wrap our data files and make them easier to
     use.'''
 
@@ -109,7 +116,7 @@ class DataWrapper:
         return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
 
 
-class ClassifierWrapper:
+class ClassifierWrapper(JSONSerializable):
     '''A helper class to wrap all the stuff we are doing. This expects
     that the file that is passed each row is in the form [tweet, label]'''
 
