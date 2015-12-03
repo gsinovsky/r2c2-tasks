@@ -1,4 +1,5 @@
 from base import DataWrapper,ClassifierWrapper,JSONSerializable
+import cPickle
 
 """
 	Serializable Class Test
@@ -46,7 +47,7 @@ print classifierWrapper
 with open('relevant_wrapper.json','r+') as rwjson:
     classifierWrapper = ClassifierWrapper()
     classifierWrapper.jsonLoads(rwjson.read())
-    print classifierWrapper.dataset.vocab
+    print len(cPickle.dumps(classifierWrapper.dataset.matrix))
 
 with open('traffic_wrapper.json','r+') as rwjson:
 	classifierWrapper = ClassifierWrapper()
