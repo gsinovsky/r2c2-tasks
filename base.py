@@ -80,7 +80,14 @@ class DataWrapper(JSONSerializable):
 
     def fromDict(self,attributesDictionary):
         #filtering the attributes that were not defined for this class
-        objDictionary = {(key,value) for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        matrixKey = 'matrix'
+        try:
+            cPickleStr = objDictionary[matrixKey] 
+            decodedMatrix = cPickle.loads(cPickleStr)
+            objDictionary.update({matrixKey:decodedMatrix})
+        except KeyError:
+            objDictionary[matrixKey] = None
         self.__dict__.update(objDictionary)
 
     """
@@ -145,7 +152,15 @@ class ClassifierWrapper(JSONSerializable):
     #         self.plot = wrapperDict['plot']
     def fromDict(self,attributesDictionary):
         #filtering the attributes that were not defined for this class
-        objDictionary = {(key,value) for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        datasetKey = 'dataset'
+        try: 
+            datasetJson = json.dumps(objDictionary[datasetKey])
+            dataWrapper = DataWrapper()
+            dataWrapper.jsonLoads(datasetJson)
+            objDictionary.update({datasetKey:dataWrapper})
+        except KeyError:
+            objDictionary[datasetKey] = None
         self.__dict__.update(objDictionary)
 
 
