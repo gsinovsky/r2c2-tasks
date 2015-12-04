@@ -54,22 +54,6 @@ class DataWrapper(JSONSerializable):
     '''A helper class to wrap our data files and make them easier to
     use.'''
 
-    # def __init__(self, filename, vectorizer=None):
-    #     self.dataset = list(load_file(filename))
-    #     self.dict = load_synonyms('./datasets/sinonimos.csv')
-    #     self.dict1 = load_words()
-
-    #     if vectorizer is not None:
-    #         self.vectorizer = vectorizer
-    #         self.matrix = self.vectorizer.transform(self.processed_tweets)
-    #         self.vocab = vectorizer.get_feature_names()
-
-    #     else:
-    #         vectorizer, X, vocab = word_matrix(self.processed_tweets)
-    #         self.vectorizer = vectorizer
-    #         self.matrix = self.X = X
-    #         self.vocab = vocab
-
     def __init__(self,dataset=None,vectorizer=None,synonyms=None,words=None,matrix=None,vocab=None):
         self.dataset    = dataset
         self.vectorizer = vectorizer
@@ -137,14 +121,6 @@ class ClassifierWrapper(JSONSerializable):
     '''A helper class to wrap all the stuff we are doing. This expects
     that the file that is passed each row is in the form [tweet, label]'''
 
-
-    # def __init__(self, clf, filename, plot=False):
-    #     self.clf = clf
-    #     self.dataset = DataWrapper(filename)
-    #     self.plot = plot
-    #     self.dict = load_synonyms('./datasets/sinonimos.csv')
-    #     self.dict1 = load_words()
-
     def __init__(self,clf=None,dataset=None,plot=False,synonyms=None,words=None):
         self.clf = clf
         self.dataset = dataset
@@ -152,14 +128,6 @@ class ClassifierWrapper(JSONSerializable):
         self.synonyms = synonyms
         self.words = words
 
-    # def fromDict(self,wrapperDict):
-    #     if 'clf' in wrapperDict:
-    #         self.clf = wrapperDict['clf']
-    #     if 'dataset' in wrapperDict:
-    #         dataWrapper = DataWrapper()
-    #         self.dataset = dataWrapper.fromDict(wrapperDict['dataset'])
-    #     if 'plot' in wrapperDict:
-    #         self.plot = wrapperDict['plot']
     def fromDict(self,attributesDictionary):
         #filtering the attributes that were not defined for this class
         objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
@@ -212,7 +180,9 @@ class ClassifierWrapper(JSONSerializable):
         return cm
 
     def validate(self, filename):
-        validation_dataset = DataWrapper(filename, self.dataset.vectorizer)
+        dataWrapperDataset = list(load_file(filename))
+        validation_dataset = DataWrapper(dataset=dataWrapperDataset, vectorizer=self.dataset.vectorizer,synonyms=copy.deepcopy(self.synonyms),words=copy.deepcopy(self.words))
+        validation_dataset.resolveMatrix()
         print 'accuracy on validation set', self.clf.score(validation_dataset.matrix,
                                                            validation_dataset.labels)
 
