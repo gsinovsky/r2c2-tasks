@@ -114,6 +114,41 @@ def get_stream_score(source, dest, window=45, now=None, spoof=False):
     if spoof:
         qs = qs.filter(Tweet.created_at <= now)
     return get_score(qs)
+"""
+    @procedure get_stored_historic_score Returns the historic score that was 
+    stored in a JSON file. If it doesn't exist, it calculates it and stores it.
+"""
+
+def get_stored_historic_score(source,dest,start,end,since_date,before_date):
+
+    key = str((source,dest))
+
+    scoresFile = 'scores/scores.json'
+    scores = {}
+    score = None
+
+    if os.path.isfile(scoresFile):
+        with open(scoresFile,'r') as scoresJson:
+            try:
+                scores = json.load(scoresJson)
+            except ValueError:
+                pass
+
+        try:
+            score = scores[key]
+        except KeyError:       
+            pass
+
+    if score is None:
+        score = get_score(related_tweets_time(source, dest, start, end,
+                                              since_date, before_date))
+        scores[key] = score 
+
+        with open(scoresFile, 'w') as scoresJson:
+            json.dump(scores,scoresJson,indent=4)
+
+    return score
+
 
 def get_historic_score(source, dest, start, end, alpha=0.3):
     '''Return the historic ocurring at time [start, end]. '''
@@ -121,13 +156,16 @@ def get_historic_score(source, dest, start, end, alpha=0.3):
     today = datetime(2015,05,07,15,00)
     partitions = [
         # this week
-        (today-timedelta(days=7), None),
-        # last week
-        (today-timedelta(days=14), today-timedelta(days=8)),
-        # the rest of the current month
-        (today-timedelta(days=30), today-timedelta(days=15)),
-        # # one month ago
-        (None, today-timedelta(days=31)),
+        (today-timedelta(days=1), None),
+        
+        # # last week
+        # (today-timedelta(days=14), today-timedelta(days=8)),
+        # # the rest of the current month
+        # (today-timedelta(days=30), today-timedelta(days=15)),
+        # # # one month ago
+        # (None, today-timedelta(days=31)),
+
+
         # (today-timedelta(days=60), today-timedelta(days=31)),
         # # 2 months ago
         # (today-timedelta(days=90), today-timedelta(days=61)),
@@ -136,9 +174,13 @@ def get_historic_score(source, dest, start, end, alpha=0.3):
     ]
 
     scores = []
-    for (since_date, before_date) in reversed(partitions):
-        scores.append(get_score(related_tweets_time(source, dest, start, end,
-                                                    since_date, before_date)))
+
+    score = get_stored_historic_score(source,dest,start,end,today-timedelta(days=1),None)
+    scores.append(score)
+    
+    # for (since_date, before_date) in reversed(partitions):
+    #     scores.append(get_score(related_tweets_time(source, dest, start, end,
+    #                                                 since_date, before_date)))
 
     # exponential smoothing
     t = scores[0]
@@ -196,11 +238,10 @@ def find_path(source, dest):
             before = currently + timedelta(minutes=-10)
             after = currently + timedelta(minutes=10)
             print 'HISTORICO'
-            """ HIST = get_historic_score(cur, succ,
+            HIST = get_historic_score(cur, succ,
                                      before.strftime('%H:%M:00'),
                                      after.strftime('%H:%M:00'))
-            """
-            estimado = (1-phi(t))*ACTUAL + phi(t)*0.6#HIST
+            estimado = (1-phi(t))*ACTUAL + phi(t)*HIST
             congestionValue = g[cur][succ]['travelTime']*0.03#g[cur][succ]['p'](estimado)#g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
             cost = t + g[cur][succ]['travelTime'] + congestionValue 
             p[(cost, succ)] = node
