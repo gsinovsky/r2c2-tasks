@@ -12,6 +12,7 @@ from utils import load_synonyms, load_words
 import pickle
 import cPickle
 import json
+import copy
 
 def word_matrix(corpus, vectorizer=None):
     if vectorizer is None:
@@ -64,6 +65,7 @@ class DataWrapper(JSONSerializable):
 
     def resolveMatrix(self):
         if self.vectorizer is not None:
+            self.vectorizer = vectorizer
             self.matrix = self.vectorizer.transform(self.processed_tweets)
             self.vocab = vectorizer.get_feature_names()
         else:
@@ -82,6 +84,13 @@ class DataWrapper(JSONSerializable):
             objDictionary.update({matrixKey:decodedMatrix})
         except KeyError:
             objDictionary[matrixKey] = None
+        vectorizerKey = 'vectorizer'
+        try:
+            cPickleStr = str(objDictionary[vectorizerKey]) #pickle does not support unicode
+            decodedVectorizer = cPickle.loads(cPickleStr)
+            objDictionary.update({vectorizerKey:decodedVectorizer})
+        except KeyError:
+            objDictionary[matrixKey] = None
         self.__dict__.update(objDictionary)
 
     """
@@ -90,7 +99,7 @@ class DataWrapper(JSONSerializable):
         en consecuencia solo nos interesa guardar estos datos
     """
     def toDict(self):
-        return {'matrix':cPickle.dumps(self.matrix),'vocab':self.vocab}
+        return {'matrix':cPickle.dumps(self.matrix),'vocab':self.vocab,'vectorizer':cPickle.dumps(self.vectorizer)}
 
     @property
     def tweets(self):
@@ -108,7 +117,7 @@ class DataWrapper(JSONSerializable):
 
     @property
     def labels(self):
-        if not hasattr(self, '_labels'):
+        if not hasattr(self, '_labels') and self.dataset is not None:
             self._labels = [int(x[1]) for x in self.dataset]
 
         return self._labels

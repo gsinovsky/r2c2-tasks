@@ -13,6 +13,7 @@ import json
 from networkx.readwrite import json_graph
 from utils import load_file,load_synonyms, load_words
 import copy
+import os
 
 TRAFFIC_WRAPPER = None
 RELEVANT_WRAPPER = None
@@ -23,6 +24,20 @@ def get_relevant(**kwargs):
     if RELEVANT_WRAPPER is None:
         synonyms = load_synonyms('./datasets/sinonimos.csv')
         words = load_words()
+        if os.path.isfile('wrappers/relevant_wrapper.json'):
+            with open('wrappers/relevant_wrapper.json','r+') as rwjson:
+                RELEVANT_WRAPPER = ClassifierWrapper()
+                RELEVANT_WRAPPER.jsonLoads(rwjson.read())
+                RELEVANT_WRAPPER.synonyms = copy.deepcopy(synonyms)
+
+                RELEVANT_WRAPPER.words = copy.deepcopy(words)
+
+                RELEVANT_WRAPPER.dataset.dataset = list(load_file('./datasets/relevant.csv'))
+                RELEVANT_WRAPPER.dataset.synonyms = copy.deepcopy(synonyms)
+
+                RELEVANT_WRAPPER.dataset.words = copy.deepcopy(words)
+
+                return RELEVANT_WRAPPER
 
         clf = kwargs.pop('clf', LogisticRegression(C=10))
         dataWrapperDataset = list(load_file('./datasets/relevant.csv'))
@@ -37,11 +52,8 @@ def get_relevant(**kwargs):
         wrapper.train()
         # print time.time() - t0, "seconds from relevant classifier"
         RELEVANT_WRAPPER = wrapper
-        with open('relevant_wrapper.json', 'w') as rw_json:
+        with open('wrappers/relevant_wrapper.json', 'w') as rw_json:
             json.dump(RELEVANT_WRAPPER.toDict(), rw_json)
-        # with open('relevant_wrapper.json','r+') as rwjson:
-        #     classifierwrapper = json.load(rwjson)
-        #     print ClassifierWrapper(classifierwrapper['clf'],'./datasets/relevant.csv')
     return RELEVANT_WRAPPER
 
 def get_traffic(**kwargs):
@@ -50,6 +62,17 @@ def get_traffic(**kwargs):
     if TRAFFIC_WRAPPER is None:
         synonyms = load_synonyms('./datasets/sinonimos.csv')
         words = load_words()
+
+        if os.path.isfile('wrappers/traffic_wrapper.json'):
+            with open('wrappers/traffic_wrapper.json','r+') as rwjson:
+                TRAFFIC_WRAPPER = ClassifierWrapper()
+                TRAFFIC_WRAPPER.jsonLoads(rwjson.read())
+                TRAFFIC_WRAPPER.dataset.dataset = list(load_file('./datasets/traffic2.csv'))
+                TRAFFIC_WRAPPER.synonyms = copy.deepcopy(synonyms)
+                TRAFFIC_WRAPPER.words = copy.deepcopy(words)
+                TRAFFIC_WRAPPER.dataset.synonyms = copy.deepcopy(synonyms)
+                TRAFFIC_WRAPPER.dataset.words = copy.deepcopy(words)
+                return TRAFFIC_WRAPPER
 
         clf = kwargs.pop('clf', LogisticRegression(C=8.5))
         dataWrapperDataset = list(load_file('./datasets/traffic2.csv'))
@@ -63,11 +86,8 @@ def get_traffic(**kwargs):
         wrapper.train()
         # print time.time() - t0, "seconds from the multiclass classifier"
         TRAFFIC_WRAPPER = wrapper
-        with open('traffic_wrapper.json', 'w') as rw_json:
+        with open('wrappers/traffic_wrapper.json', 'w') as rw_json:
             json.dump(TRAFFIC_WRAPPER.toDict(), rw_json)
-        # with open('traffic_wrapper.json','r+') as rwjson:
-        #     classifierwrapper = json.load(rwjson)
-        #     print ClassifierWrapper(classifierwrapper['clf'],'./datasets/relevant.csv')
     return TRAFFIC_WRAPPER
 
 def get_score(tweets):
