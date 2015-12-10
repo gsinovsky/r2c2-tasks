@@ -253,4 +253,3 @@ def find_path(origin, destination):
             print "ARC: %s -> %s ***** SCORE: %.2f, COST: %.2f\n" %(currentNode, successor, estimatedScore, cost)
             heapq.heappush(queue, (cost, successor))
 
-print find_path("El Cafetal","La Trinidad").next()

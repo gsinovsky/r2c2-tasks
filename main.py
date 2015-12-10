@@ -1,7 +1,11 @@
 from traffic import find_path
 
+print "Path from El Cafetal to Los Ruices:"
+path = find_path("El Cafetal","Los Ruices").next()
 
-generator = find_path("USB","El Cafetal")
+print path
+i = 0
 
-generator.next()
-
+for cost, node in path:
+    print "%i.Sector: %s Cost: %.2f" %(i,node,cost)
+    i += 1
