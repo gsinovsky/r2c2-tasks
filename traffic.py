@@ -1,17 +1,16 @@
 # coding: utf-8
-import heapq
-from datetime import datetime, timedelta
-from datetime import datetime, timedelta
-from sklearn.linear_model import LogisticRegression
-from models import Tweet
-from base import ClassifierWrapper,DataWrapper
 from retriever import related_tweets_window, related_tweets_time
-from utils import color_code_text
+from utils import load_file, load_synonyms, load_words
+from sklearn.linear_model import LogisticRegression
+from base import ClassifierWrapper, DataWrapper
 from graph import get_graph, get_TravelTime
+from networkx.readwrite import json_graph
+from datetime import datetime, timedelta
+from utils import color_code_text
+from models import Tweet
+import heapq
 import time
 import json
-from networkx.readwrite import json_graph
-from utils import load_file,load_synonyms, load_words
 import copy
 import os
 
@@ -120,9 +119,9 @@ def get_stream_score(source, dest, window=45, now=None, spoof=False):
     stored in a JSON file. If it doesn't exist, it calculates it and stores it.
 """
 
-def get_stored_historic_score(source,dest,start,end,since_date,before_date):
+def get_stored_historic_score(origin,destination,startTime,endTime,sinceDate,beforeDate):
 
-    key = str((source,dest))
+    key = str((origin,destination))
 
     scoresFile = 'scores/scores.json'
     scores = {}
@@ -141,8 +140,8 @@ def get_stored_historic_score(source,dest,start,end,since_date,before_date):
             pass
 
     if score is None:
-        score = get_score(related_tweets_time(source, dest, start, end,
-                                              since_date, before_date))
+        score = get_score(related_tweets_time(origin, destination, startTime, endTime,
+                                              sinceDate, beforeDate))
         scores[key] = score 
 
         with open(scoresFile, 'w') as scoresJson:
@@ -152,47 +151,43 @@ def get_stored_historic_score(source,dest,start,end,since_date,before_date):
 
 
 def get_historic_score(origin, destination, startTime, endTime, alpha=0.3):
+    
     '''Return the historic ocurring at time [startTime, endTime]. '''
+    
     today = datetime.now()
     today = datetime(2015,05,07,15,00)
-    partitions = [
-        # this week
-        (today-timedelta(days=1), None),
-        
-        # # last week
-        # (today-timedelta(days=14), today-timedelta(days=8)),
-        # # the rest of the current month
-        # (today-timedelta(days=30), today-timedelta(days=15)),
-        # # # one month ago
-        # (None, today-timedelta(days=31)),
 
-
-        # (today-timedelta(days=60), today-timedelta(days=31)),
-        # # 2 months ago
-        # (today-timedelta(days=90), today-timedelta(days=61)),
-        # # the rest of related tweets
-        # (None, today-timedelta(days=91)),
+    #Ranges of dates of old tweets to be processed    
+    dateRanges = [
+        (today-timedelta(days=1), None), #One day ago
+        (today-timedelta(days=7), None), #This week
+        (today-timedelta(days=14), today-timedelta(days=8)), #Last week
+        (today-timedelta(days=30), today-timedelta(days=15)), #The rest of the current month 
+        (None, today-timedelta(days=31)), #One month ago 
+        (today-timedelta(days=60), today-timedelta(days=31)),
+        (today-timedelta(days=90), today-timedelta(days=61)), #2 months ago
+        (None, today-timedelta(days=91)), #The rest of related tweets
     ]
 
     scores = []
 
-    score = get_stored_historic_score(origin,destination,startTime,endTime,today-timedelta(days=1),None)
+    #Tweets from one week ago
+    sinceDate, beforeDate = dateRanges[1]
+    score = get_score(related_tweets_time(origin,destination,startTime,endTime,sinceDate,beforeDate))
     scores.append(score)
     
-    # for (since_date, before_date) in reversed(partitions):
-    #     scores.append(get_score(related_tweets_time(origin, destination, startTime, endTime,
-    #                                                 since_date, before_date)))
+    #Study case: Tweets from a month ago
+    sinceDate, beforeDate = dateRanges[4] 
+    score = get_stored_historic_score(origin,destination,startTime,endTime,sinceDate,beforeDate)
+    scores.append(score)
 
-    # exponential smoothing
-    t = scores[0]
+    #Exponential smoothing of the score
+    smoothedScore = scores[0]
+    
     for score in scores[1:]:
-        print "Initial score %f in (%s,%s)" % (score, origin, destination)
-        t = alpha*score + (1-alpha)*t
-        print "Smoothed score %f with alpha = %f" % (t, alpha)
+        smoothedScore = alpha*score + (1-alpha)*smoothedScore
 
-    # t = 0
-
-    return t
+    return smoothedScore
 
 def phi(t):
     return min(0.6, 0.2 + (0.4 * t)/120)
@@ -213,11 +208,12 @@ def find_path(origin, destination):
     graph = get_graph()
 
     now = datetime(2015,05,07,15,00)
-    print now
+    print "Current Date: %s\n" %(now)
+
     while queue:
-        node = accumulatedCost, currentNode = heapq.heappop(queue) #Tuple: node = (cost, current sector)
+        #Tuple: node = (cost, current sector)
+        node = accumulatedCost, currentNode = heapq.heappop(queue) 
        
-        
         print '----- Current Node: %s -----\n' %(currentNode)
         if currentNode == destination:
             path = list(build_path(path, node))
@@ -235,7 +231,7 @@ def find_path(origin, destination):
         for successor in graph[currentNode]:
         
             actualScore = get_stream_score(currentNode, successor, now=now, spoof=True)
-            print 'ACTUAL SCORE: %s' %(actualScore)
+            print 'ACTUAL SCORE: %.2f' %(actualScore)
             
             before = accumulatedTime + timedelta(minutes=-10)
             after = accumulatedTime + timedelta(minutes=10)
@@ -244,7 +240,7 @@ def find_path(origin, destination):
                                      before.strftime('%H:%M:00'),
                                      after.strftime('%H:%M:00'))
 
-            print 'HISTORIC SCORE: %s' %(historicScore)
+            print 'HISTORIC SCORE: %.2f' %(historicScore)
 
             estimatedScore = (1-phi(accumulatedCost))*actualScore + phi(accumulatedCost)*historicScore
 
@@ -254,7 +250,7 @@ def find_path(origin, destination):
             cost = accumulatedCost + get_TravelTime(graph,currentNode,successor) + congestionValue 
             
             path[(cost, successor)] = node
-            print "ARC: %s -> %s ***** SCORE: %s, COST: %s\n" %(currentNode, successor, estimatedScore, cost)
+            print "ARC: %s -> %s ***** SCORE: %.2f, COST: %.2f\n" %(currentNode, successor, estimatedScore, cost)
             heapq.heappush(queue, (cost, successor))
 
-print find_path("El Cafetal","Los Ruices").next()
+print find_path("El Cafetal","La Trinidad").next()
