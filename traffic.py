@@ -4,14 +4,16 @@ from datetime import datetime, timedelta
 from datetime import datetime, timedelta
 from sklearn.linear_model import LogisticRegression
 from models import Tweet
-from base import ClassifierWrapper
+from base import ClassifierWrapper,DataWrapper
 from retriever import related_tweets_window, related_tweets_time
 from utils import color_code_text
 from graph import get_graph
 import time
 import json
 from networkx.readwrite import json_graph
-
+from utils import load_file,load_synonyms, load_words
+import copy
+import os
 
 TRAFFIC_WRAPPER = None
 RELEVANT_WRAPPER = None
@@ -20,28 +22,72 @@ def get_relevant(**kwargs):
     global RELEVANT_WRAPPER
     # t0 = time.time()
     if RELEVANT_WRAPPER is None:
+        synonyms = load_synonyms('./datasets/sinonimos.csv')
+        words = load_words()
+        if os.path.isfile('wrappers/relevant_wrapper.json'):
+            with open('wrappers/relevant_wrapper.json','r+') as rwjson:
+                RELEVANT_WRAPPER = ClassifierWrapper()
+                RELEVANT_WRAPPER.jsonLoads(rwjson.read())
+                RELEVANT_WRAPPER.synonyms = copy.deepcopy(synonyms)
+
+                RELEVANT_WRAPPER.words = copy.deepcopy(words)
+
+                RELEVANT_WRAPPER.dataset.dataset = list(load_file('./datasets/relevant.csv'))
+                RELEVANT_WRAPPER.dataset.synonyms = copy.deepcopy(synonyms)
+
+                RELEVANT_WRAPPER.dataset.words = copy.deepcopy(words)
+
+                return RELEVANT_WRAPPER
+
         clf = kwargs.pop('clf', LogisticRegression(C=10))
-        wrapper = ClassifierWrapper(clf, './datasets/relevant.csv')
+        dataWrapperDataset = list(load_file('./datasets/relevant.csv'))
+        dataWrapper = DataWrapper(dataset=dataWrapperDataset,synonyms=copy.deepcopy(synonyms),words=copy.deepcopy(words))
+        dataWrapper.resolveMatrix()
+
+        wrapper = ClassifierWrapper(clf=clf,dataset=dataWrapper,synonyms=copy.deepcopy(synonyms),words=copy.deepcopy(words))
+
         cross_validate = kwargs.pop('cross_validate', False)
         if cross_validate:
             wrapper.cross_validate()
         wrapper.train()
         # print time.time() - t0, "seconds from relevant classifier"
         RELEVANT_WRAPPER = wrapper
+        with open('wrappers/relevant_wrapper.json', 'w') as rw_json:
+            json.dump(RELEVANT_WRAPPER.toDict(), rw_json)
     return RELEVANT_WRAPPER
 
 def get_traffic(**kwargs):
     global TRAFFIC_WRAPPER
     # t0 = time.time()
     if TRAFFIC_WRAPPER is None:
+        synonyms = load_synonyms('./datasets/sinonimos.csv')
+        words = load_words()
+
+        if os.path.isfile('wrappers/traffic_wrapper.json'):
+            with open('wrappers/traffic_wrapper.json','r+') as rwjson:
+                TRAFFIC_WRAPPER = ClassifierWrapper()
+                TRAFFIC_WRAPPER.jsonLoads(rwjson.read())
+                TRAFFIC_WRAPPER.dataset.dataset = list(load_file('./datasets/traffic2.csv'))
+                TRAFFIC_WRAPPER.synonyms = copy.deepcopy(synonyms)
+                TRAFFIC_WRAPPER.words = copy.deepcopy(words)
+                TRAFFIC_WRAPPER.dataset.synonyms = copy.deepcopy(synonyms)
+                TRAFFIC_WRAPPER.dataset.words = copy.deepcopy(words)
+                return TRAFFIC_WRAPPER
+
         clf = kwargs.pop('clf', LogisticRegression(C=8.5))
-        wrapper = ClassifierWrapper(clf, './datasets/traffic2.csv')
+        dataWrapperDataset = list(load_file('./datasets/traffic2.csv'))
+        dataWrapper = DataWrapper(dataset=dataWrapperDataset,synonyms=copy.deepcopy(synonyms),words=copy.deepcopy(words))
+        dataWrapper.resolveMatrix()
+
+        wrapper = ClassifierWrapper(clf=clf,dataset=dataWrapper,synonyms=copy.deepcopy(synonyms),words=copy.deepcopy(words))
         cross_validate = kwargs.pop('cross_validate', True)
         if cross_validate:
             wrapper.cross_validate()
         wrapper.train()
         # print time.time() - t0, "seconds from the multiclass classifier"
         TRAFFIC_WRAPPER = wrapper
+        with open('wrappers/traffic_wrapper.json', 'w') as rw_json:
+            json.dump(TRAFFIC_WRAPPER.toDict(), rw_json)
     return TRAFFIC_WRAPPER
 
 def get_score(tweets):
@@ -68,6 +114,41 @@ def get_stream_score(source, dest, window=45, now=None, spoof=False):
     if spoof:
         qs = qs.filter(Tweet.created_at <= now)
     return get_score(qs)
+"""
+    @procedure get_stored_historic_score Returns the historic score that was 
+    stored in a JSON file. If it doesn't exist, it calculates it and stores it.
+"""
+
+def get_stored_historic_score(source,dest,start,end,since_date,before_date):
+
+    key = str((source,dest))
+
+    scoresFile = 'scores/scores.json'
+    scores = {}
+    score = None
+
+    if os.path.isfile(scoresFile):
+        with open(scoresFile,'r') as scoresJson:
+            try:
+                scores = json.load(scoresJson)
+            except ValueError:
+                pass
+
+        try:
+            score = scores[key]
+        except KeyError:       
+            pass
+
+    if score is None:
+        score = get_score(related_tweets_time(source, dest, start, end,
+                                              since_date, before_date))
+        scores[key] = score 
+
+        with open(scoresFile, 'w') as scoresJson:
+            json.dump(scores,scoresJson,indent=4)
+
+    return score
+
 
 def get_historic_score(source, dest, start, end, alpha=0.3):
     '''Return the historic ocurring at time [start, end]. '''
@@ -75,13 +156,16 @@ def get_historic_score(source, dest, start, end, alpha=0.3):
     today = datetime(2015,05,07,15,00)
     partitions = [
         # this week
-        (today-timedelta(days=7), None),
-        # last week
-        (today-timedelta(days=14), today-timedelta(days=8)),
-        # the rest of the current month
-        (today-timedelta(days=30), today-timedelta(days=15)),
-        # # one month ago
-        (None, today-timedelta(days=31)),
+        (today-timedelta(days=1), None),
+        
+        # # last week
+        # (today-timedelta(days=14), today-timedelta(days=8)),
+        # # the rest of the current month
+        # (today-timedelta(days=30), today-timedelta(days=15)),
+        # # # one month ago
+        # (None, today-timedelta(days=31)),
+
+
         # (today-timedelta(days=60), today-timedelta(days=31)),
         # # 2 months ago
         # (today-timedelta(days=90), today-timedelta(days=61)),
@@ -90,9 +174,13 @@ def get_historic_score(source, dest, start, end, alpha=0.3):
     ]
 
     scores = []
-    for (since_date, before_date) in reversed(partitions):
-        scores.append(get_score(related_tweets_time(source, dest, start, end,
-                                                    since_date, before_date)))
+
+    score = get_stored_historic_score(source,dest,start,end,today-timedelta(days=1),None)
+    scores.append(score)
+    
+    # for (since_date, before_date) in reversed(partitions):
+    #     scores.append(get_score(related_tweets_time(source, dest, start, end,
+    #                                                 since_date, before_date)))
 
     # exponential smoothing
     t = scores[0]
@@ -123,8 +211,8 @@ def find_path(source, dest):
     with open("sectorGraph/sectorGraphProcessed.json") as data_file:
         data = json.load(data_file)
 
-    sectorGraph = json_graph.adjacency_graph(data)
-    g = sectorGraph
+   # sectorGraph = json_graph.adjacency_graph(data)
+    #g = sectorGraph
 
     # now = datetime.now() - timedelta(days=10)
     now = datetime(2015,05,07,15,00)
@@ -154,11 +242,11 @@ def find_path(source, dest):
                                      before.strftime('%H:%M:00'),
                                      after.strftime('%H:%M:00'))
             estimado = (1-phi(t))*ACTUAL + phi(t)*HIST
-            congestionValue = g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
+            congestionValue = g[cur][succ]['travelTime']*0.03#g[cur][succ]['p'](estimado)#g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
             cost = t + g[cur][succ]['travelTime'] + congestionValue 
             p[(cost, succ)] = node
             print cur, '->', succ, estimado
             print cur, '->', succ, cost
             heapq.heappush(q, (cost, succ))
 
-find_path("El Placer","Guayabitos").next()
+print find_path("El Cafetal","Los Ruices").next()

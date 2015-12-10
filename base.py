@@ -1,13 +1,18 @@
 # coding: utf-8
-
+from abc import ABCMeta,abstractmethod #Abstract Classes support
 from sklearn import cross_validation
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.externals import joblib
 from utils import load_file
 from preprocess import process_tweet
 import matplotlib.pyplot as plt
 from plots import plot_learning_curve, plot_confusion_matrix
 from utils import load_synonyms, load_words
+import pickle
+import cPickle
+import json
+import copy
 
 def word_matrix(corpus, vectorizer=None):
     if vectorizer is None:
@@ -21,26 +26,80 @@ def word_matrix(corpus, vectorizer=None):
 
     return vectorizer, X, vocab
 
-class DataWrapper(object):
+"""
+    Abstract Class
+"""
+class JSONSerializable:
+
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def fromDict(self,attributesDictionary):
+        raise NotImplementedError
+
+    @abstractmethod
+    def toDict(self):
+        raise NotImplementedError
+
+    def jsonDumps(self):
+        return json.dumps(self.toDict())
+
+    def jsonLoads(self,jsonContent):
+        return self.fromDict(json.loads(jsonContent))
+
+    def __repr__(self): 
+        return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
+
+
+class DataWrapper(JSONSerializable):
     '''A helper class to wrap our data files and make them easier to
     use.'''
 
-    def __init__(self, filename, vectorizer=None):
-        self.dataset = list(load_file(filename))
-        self.dict = load_synonyms('./datasets/sinonimos.csv')
-        self.dict1 = load_words()
+    def __init__(self,dataset=None,vectorizer=None,synonyms=None,words=None,matrix=None,vocab=None):
+        self.dataset    = dataset
+        self.vectorizer = vectorizer
+        self.synonyms   = synonyms
+        self.words  = words
+        self.matrix = matrix
+        self.vocab  = vocab
 
-        if vectorizer is not None:
+    def resolveMatrix(self):
+        if self.vectorizer is not None:
             self.vectorizer = vectorizer
             self.matrix = self.vectorizer.transform(self.processed_tweets)
             self.vocab = vectorizer.get_feature_names()
-
         else:
             vectorizer, X, vocab = word_matrix(self.processed_tweets)
             self.vectorizer = vectorizer
             self.matrix = self.X = X
             self.vocab = vocab
 
+    def fromDict(self,attributesDictionary):
+        #filtering the attributes that were not defined for this class
+        objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+        matrixKey = 'matrix'
+        try:
+            cPickleStr = str(objDictionary[matrixKey]) #pickle does not support unicode
+            decodedMatrix = cPickle.loads(cPickleStr)
+            objDictionary.update({matrixKey:decodedMatrix})
+        except KeyError:
+            objDictionary[matrixKey] = None
+        vectorizerKey = 'vectorizer'
+        try:
+            cPickleStr = str(objDictionary[vectorizerKey]) #pickle does not support unicode
+            decodedVectorizer = cPickle.loads(cPickleStr)
+            objDictionary.update({vectorizerKey:decodedVectorizer})
+        except KeyError:
+            objDictionary[matrixKey] = None
+        self.__dict__.update(objDictionary)
+
+    """
+        dataset,dict y dict son atributos estaticos.
+        Los atributos matrix y vocab son producto del procesamiento de los tweets
+        en consecuencia solo nos interesa guardar estos datos
+    """
+    def toDict(self):
+        return {'matrix':cPickle.dumps(self.matrix),'vocab':self.vocab,'vectorizer':cPickle.dumps(self.vectorizer)}
 
     @property
     def tweets(self):
@@ -52,32 +111,63 @@ class DataWrapper(object):
     @property
     def processed_tweets(self):
         if not hasattr(self, '_processed_tweets'):
-            self._processed_tweets = [process_tweet(x, self.dict, self.dict1) for x in self.tweets]
+            self._processed_tweets = [process_tweet(x, self.synonyms, self.words) for x in self.tweets]
 
         return self._processed_tweets
 
     @property
     def labels(self):
-        if not hasattr(self, '_labels'):
+        if not hasattr(self, '_labels') and self.dataset is not None:
             self._labels = [int(x[1]) for x in self.dataset]
 
         return self._labels
 
+    def __repr__(self): 
+        return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
 
-class ClassifierWrapper(object):
+
+class ClassifierWrapper(JSONSerializable):
     '''A helper class to wrap all the stuff we are doing. This expects
     that the file that is passed each row is in the form [tweet, label]'''
 
-
-    def __init__(self, clf, filename, plot=False):
+    def __init__(self,clf=None,dataset=None,plot=False,synonyms=None,words=None):
         self.clf = clf
-        self.dataset = DataWrapper(filename)
+        self.dataset = dataset
         self.plot = plot
-        self.dict = load_synonyms('./datasets/sinonimos.csv')
-        self.dict1 = load_words()
+        self.synonyms = synonyms
+        self.words = words
+
+    def fromDict(self,attributesDictionary):
+        #filtering the attributes that were not defined for this class
+        objDictionary = {key:value for (key,value) in attributesDictionary.iteritems() if key in self.__dict__}
+
+        """ Decoding Dataset """
+        datasetKey = 'dataset'
+        try: 
+            datasetJson = json.dumps(objDictionary[datasetKey])
+            dataWrapper = DataWrapper()
+            dataWrapper.jsonLoads(datasetJson)
+            objDictionary.update({datasetKey:dataWrapper})
+        except KeyError:
+            objDictionary[datasetKey] = None
+
+        """ Decoding clf"""
+        clfKey = 'clf'
+        try:
+            pickleStr = str(objDictionary[clfKey]) #pickle does not support unicode
+            decodedClf = pickle.loads(pickleStr)
+            objDictionary.update({clfKey:decodedClf})
+        except KeyError:
+            objDictionary[clfKey] = None
+
+        self.__dict__.update(objDictionary)
+
+
+    def toDict(self):
+        return {'clf':pickle.dumps(self.clf),'dataset':self.dataset.toDict(),'plot':self.plot}
 
     def vtransform(self, tweets):
-        return self.dataset.vectorizer.transform([process_tweet(x, self.dict, self.dict1) for x in tweets])
+        return self.dataset.vectorizer.transform([process_tweet(x, self.synonyms, self.words) for x in tweets])
 
     def train(self, test_size=0.2, random_state=None):
         # Split dataset into training and validation.
@@ -99,7 +189,9 @@ class ClassifierWrapper(object):
         return cm
 
     def validate(self, filename):
-        validation_dataset = DataWrapper(filename, self.dataset.vectorizer)
+        dataWrapperDataset = list(load_file(filename))
+        validation_dataset = DataWrapper(dataset=dataWrapperDataset, vectorizer=self.dataset.vectorizer,synonyms=copy.deepcopy(self.synonyms),words=copy.deepcopy(self.words))
+        validation_dataset.resolveMatrix()
         print 'accuracy on validation set', self.clf.score(validation_dataset.matrix,
                                                            validation_dataset.labels)
 
@@ -126,3 +218,6 @@ class ClassifierWrapper(object):
 
     def predict1(self, value):
         return self.predict([value])[0]
+
+    def __repr__(self): 
+        return '{%s}' % str('\n '.join('%s : %s' % (key, repr(value)) for (key, value) in self.__dict__.iteritems()))
