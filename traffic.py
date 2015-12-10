@@ -7,7 +7,7 @@ from models import Tweet
 from base import ClassifierWrapper,DataWrapper
 from retriever import related_tweets_window, related_tweets_time
 from utils import color_code_text
-from graph import get_graph
+from graph import get_graph, get_TravelTime
 import time
 import json
 from networkx.readwrite import json_graph
@@ -22,16 +22,15 @@ def get_relevant(**kwargs):
     global RELEVANT_WRAPPER
     # t0 = time.time()
     if RELEVANT_WRAPPER is None:
+        wrapperFile = 'wrappers/relevant_wrapper.json'
         synonyms = load_synonyms('./datasets/sinonimos.csv')
         words = load_words()
-        if os.path.isfile('wrappers/relevant_wrapper.json'):
-            with open('wrappers/relevant_wrapper.json','r+') as rwjson:
+        if os.path.isfile(wrapperFile):
+            with open(wrapperFile,'r+') as rwjson:
                 RELEVANT_WRAPPER = ClassifierWrapper()
                 RELEVANT_WRAPPER.jsonLoads(rwjson.read())
                 RELEVANT_WRAPPER.synonyms = copy.deepcopy(synonyms)
-
                 RELEVANT_WRAPPER.words = copy.deepcopy(words)
-
                 RELEVANT_WRAPPER.dataset.dataset = list(load_file('./datasets/relevant.csv'))
                 RELEVANT_WRAPPER.dataset.synonyms = copy.deepcopy(synonyms)
 
@@ -52,7 +51,7 @@ def get_relevant(**kwargs):
         wrapper.train()
         # print time.time() - t0, "seconds from relevant classifier"
         RELEVANT_WRAPPER = wrapper
-        with open('wrappers/relevant_wrapper.json', 'w') as rw_json:
+        with open(wrapperFile, 'w') as rw_json:
             json.dump(RELEVANT_WRAPPER.toDict(), rw_json)
     return RELEVANT_WRAPPER
 
@@ -60,11 +59,12 @@ def get_traffic(**kwargs):
     global TRAFFIC_WRAPPER
     # t0 = time.time()
     if TRAFFIC_WRAPPER is None:
+        wrapperFile = 'wrappers/traffic_wrapper.json'
         synonyms = load_synonyms('./datasets/sinonimos.csv')
         words = load_words()
 
-        if os.path.isfile('wrappers/traffic_wrapper.json'):
-            with open('wrappers/traffic_wrapper.json','r+') as rwjson:
+        if os.path.isfile(wrapperFile):
+            with open(wrapperFile,'r+') as rwjson:
                 TRAFFIC_WRAPPER = ClassifierWrapper()
                 TRAFFIC_WRAPPER.jsonLoads(rwjson.read())
                 TRAFFIC_WRAPPER.dataset.dataset = list(load_file('./datasets/traffic2.csv'))
@@ -86,7 +86,7 @@ def get_traffic(**kwargs):
         wrapper.train()
         # print time.time() - t0, "seconds from the multiclass classifier"
         TRAFFIC_WRAPPER = wrapper
-        with open('wrappers/traffic_wrapper.json', 'w') as rw_json:
+        with open(wrapperFile, 'w') as rw_json:
             json.dump(TRAFFIC_WRAPPER.toDict(), rw_json)
     return TRAFFIC_WRAPPER
 
@@ -114,6 +114,7 @@ def get_stream_score(source, dest, window=45, now=None, spoof=False):
     if spoof:
         qs = qs.filter(Tweet.created_at <= now)
     return get_score(qs)
+
 """
     @procedure get_stored_historic_score Returns the historic score that was 
     stored in a JSON file. If it doesn't exist, it calculates it and stores it.
@@ -150,8 +151,8 @@ def get_stored_historic_score(source,dest,start,end,since_date,before_date):
     return score
 
 
-def get_historic_score(source, dest, start, end, alpha=0.3):
-    '''Return the historic ocurring at time [start, end]. '''
+def get_historic_score(origin, destination, startTime, endTime, alpha=0.3):
+    '''Return the historic ocurring at time [startTime, endTime]. '''
     today = datetime.now()
     today = datetime(2015,05,07,15,00)
     partitions = [
@@ -175,17 +176,17 @@ def get_historic_score(source, dest, start, end, alpha=0.3):
 
     scores = []
 
-    score = get_stored_historic_score(source,dest,start,end,today-timedelta(days=1),None)
+    score = get_stored_historic_score(origin,destination,startTime,endTime,today-timedelta(days=1),None)
     scores.append(score)
     
     # for (since_date, before_date) in reversed(partitions):
-    #     scores.append(get_score(related_tweets_time(source, dest, start, end,
+    #     scores.append(get_score(related_tweets_time(origin, destination, startTime, endTime,
     #                                                 since_date, before_date)))
 
     # exponential smoothing
     t = scores[0]
     for score in scores[1:]:
-        print "Initial score %f in (%s,%s)" % (score, source, dest)
+        print "Initial score %f in (%s,%s)" % (score, origin, destination)
         t = alpha*score + (1-alpha)*t
         print "Smoothed score %f with alpha = %f" % (t, alpha)
 
@@ -196,57 +197,64 @@ def get_historic_score(source, dest, start, end, alpha=0.3):
 def phi(t):
     return min(0.6, 0.2 + (0.4 * t)/120)
 
-def build_path(p, node):
+def build_path(path, node):
     while node != -1:
         yield node
-        node = p[node]
+        node = path[node]
 
-def find_path(source, dest):
-    q = [(0, source)]
-    p = {}
-    p[(0, source)] = -1
-    visit = set()
-    g = get_graph()
+def find_path(origin, destination):
 
-    with open("sectorGraph/sectorGraphProcessed.json") as data_file:
-        data = json.load(data_file)
+    queue = [(0, origin)]
+   
+    path = {}
+    path[(0, origin)] = -1
+   
+    visitedNodes = set()
+    graph = get_graph()
 
-   # sectorGraph = json_graph.adjacency_graph(data)
-    #g = sectorGraph
-
-    # now = datetime.now() - timedelta(days=10)
     now = datetime(2015,05,07,15,00)
     print now
-    while q:
-        node = t, cur = heapq.heappop(q)
-        print '****', cur
-        if cur == dest:
-            path = list(build_path(p, node))
+    while queue:
+        node = accumulatedCost, currentNode = heapq.heappop(queue) #Tuple: node = (cost, current sector)
+       
+        
+        print '----- Current Node: %s -----\n' %(currentNode)
+        if currentNode == destination:
+            path = list(build_path(path, node))
             path.reverse()
             yield path
             continue
 
-        if cur in visit:
+        if currentNode in visitedNodes:
             continue
 
-        visit.add(cur)
+        visitedNodes.add(currentNode)
 
-        currently = now + timedelta(minutes=t)
-        for succ in g[cur]:
-            print 'ACTUAL'
-            ACTUAL = get_stream_score(cur, succ, now=now, spoof=True)
-            before = currently + timedelta(minutes=-10)
-            after = currently + timedelta(minutes=10)
-            print 'HISTORICO'
-            HIST = get_historic_score(cur, succ,
+        accumulatedTime = now + timedelta(minutes=accumulatedCost)
+
+        for successor in graph[currentNode]:
+        
+            actualScore = get_stream_score(currentNode, successor, now=now, spoof=True)
+            print 'ACTUAL SCORE: %s' %(actualScore)
+            
+            before = accumulatedTime + timedelta(minutes=-10)
+            after = accumulatedTime + timedelta(minutes=10)
+            
+            historicScore = get_historic_score(currentNode, successor,
                                      before.strftime('%H:%M:00'),
                                      after.strftime('%H:%M:00'))
-            estimado = (1-phi(t))*ACTUAL + phi(t)*HIST
-            congestionValue = g[cur][succ]['travelTime']*0.03#g[cur][succ]['p'](estimado)#g[cur][succ]['travelTime']*0.03 #TODO change so that each node has a different traffic function
-            cost = t + g[cur][succ]['travelTime'] + congestionValue 
-            p[(cost, succ)] = node
-            print cur, '->', succ, estimado
-            print cur, '->', succ, cost
-            heapq.heappush(q, (cost, succ))
+
+            print 'HISTORIC SCORE: %s' %(historicScore)
+
+            estimatedScore = (1-phi(accumulatedCost))*actualScore + phi(accumulatedCost)*historicScore
+
+            #TODO change so that each node has a different traffic penalty function
+            congestionValue = get_TravelTime(graph,currentNode,successor)*estimatedScore
+
+            cost = accumulatedCost + get_TravelTime(graph,currentNode,successor) + congestionValue 
+            
+            path[(cost, successor)] = node
+            print "ARC: %s -> %s ***** SCORE: %s, COST: %s\n" %(currentNode, successor, estimatedScore, cost)
+            heapq.heappush(queue, (cost, successor))
 
 print find_path("El Cafetal","Los Ruices").next()
