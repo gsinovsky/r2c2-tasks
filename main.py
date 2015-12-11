@@ -1,11 +1,13 @@
 from traffic import find_path
 
-print "Path from El Cafetal to Los Ruices:"
 path = find_path("El Cafetal","Los Ruices").next()
+i = 1
 
-print path
-i = 0
+print "Path from El Cafetal to Los Ruices:"
 
 for cost, node in path:
-    print "%i.Sector: %s Cost: %.2f" %(i,node,cost)
+    print "%i.Sector: %s ***** Accumulated Time: %.2f" %(i,node,cost)
     i += 1
+
+totalTime, sector = path[-1]
+print "\nTotal trip time (in minutes): %.2f" %(totalTime)
