@@ -6,9 +6,11 @@ from calendar import timegm
 from datetime import datetime
 from termcolor import cprint
 
+def parse_datetime_from_str(date_str):
+    return datetime.fromtimestamp(timegm(rfc822.parsedate(date_str)))
 
 def parse_datetime(obj):
-    return datetime.fromtimestamp(timegm(rfc822.parsedate(obj.created_at)))
+    return parse_datetime_from_str(obj.created_at)
 
 def color_code_text(text, score):
     COLORS = ['green', 'yellow', 'red']
