@@ -117,6 +117,10 @@ class Tweet(Base):
 
         return instance
 
+    def submit(self):
+        session.add(self)
+        session.commit()
+
     def __str__(self):
         return u'{}\'s tweet #{}'.format(self.user, self.tweet_id)
 
