@@ -4,7 +4,22 @@ from models import User, Tweet
 from db import session
 import json
 
-def jsonToDBTest():
+"""
+    PRECONDITINO: jsonfile contains a list of tweets as dictionaries
+    @procedure tweet_from_json_to_db :  Given a json file containing a list of dictionaries, 
+                                        constructs a tweet model object from dictionaries and 
+                                        store its content into the database related to the model
+"""
+def tweet_from_json_to_db(jsonfilename):
+    parsedTweets = parseJSON(jsonfilename=jsonfilename)
+    for parsedTweet in parsedTweets:
+        tweet = Tweet.from_dictionary(parsedTweet)
+        print "Parsed Tweet: %s" %(tweet)
+        print "Storing Tweet into DB..."
+        tweet.submit() # SAVES INTO DATABASE
+
+
+def tweet_from_jso_to_DB_test():
     """TODO
     #open json file
     #parse json files using json library
