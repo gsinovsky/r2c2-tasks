@@ -5,7 +5,7 @@ from db import session
 import json
 
 """
-    PRECONDITINO: jsonfile contains a list of tweets as dictionaries
+    PRECONDITION: jsonfile contains a list of tweets as dictionaries
     @procedure tweet_from_json_to_db :  Given a json file containing a list of dictionaries, 
                                         constructs a tweet model object from dictionaries and 
                                         store its content into the database related to the model
