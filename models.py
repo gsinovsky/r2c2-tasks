@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, BigInteger
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, BigInteger, and_
+from sqlalchemy.dialects.postgresql import TIMESTAMP, DOUBLE_PRECISION
 from sqlalchemy.orm import relationship, backref
 from twitterAPI import TwitterAPIFactory
 
@@ -125,3 +125,66 @@ class Tweet(Base):
         return u'{}\'s tweet #{}'.format(self.user, self.tweet_id)
 
     __repr__ = __str__
+
+
+class Route(Base):
+
+    __tablename__ = 'route'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # Arco en el grafo
+    origin = Column(String) 
+    destination = Column(String)
+
+    def __init__(self, *args, **kwargs):
+        for k, w in kwargs.items():
+            setattr(self, k, w)
+
+    def save(self):
+        session.add(self)
+        session.commit()
+
+    @classmethod
+    def get_or_none(cls,origin,destination):
+        return Route.query.filter(and_(Route.origin==origin, Route.destination==destination)).first()
+    
+    def __str__(self):
+        return "Route(id=%s,origin=%s,destination=%s)"%(self.id, self.origin,self.destination)
+
+    __repr__ = __str__
+
+
+class HistoricScore(Base):
+    """Modelo para el costo de los arcos"""
+    __tablename__ = 'historic_score'
+
+    route_id = Column(Integer,ForeignKey('route.id'), primary_key=True)#Referenec to Route
+    timestamp = Column(TIMESTAMP(timezone=False), primary_key=True)
+    score = Column(DOUBLE_PRECISION)
+
+    def __init__(self, *args, **kwargs):
+        for k, w in kwargs.items():
+            setattr(self, k, w)
+
+    def save(self):
+        session.add(self)
+        session.commit()
+
+
+    @classmethod
+    def get_or_none(cls,route_id,timestamp):
+        return HistoricScore.query.filter(and_(HistoricScore.route_id==route_id,HistoricScore.timestamp==timestamp)).first()
+
+    @classmethod
+    def get_scores_from_date(cls,route_id,timestamp):
+        return cls.query.filter(cls.route_id and cls.timestamp >= timestamp)
+
+    @classmethod
+    def get_scores_until_date(cls,route_id,timestamp):
+        return cls.query.filter(cls.route_id and cls.timestamp <= timestamp)
+
+    def __str__(self):
+        return "HistoricScore(route_id=%s,timestamp=%s,score%s)"%(self.route_id,self.timestamp,self.score)
+
+    __repr__ = __str__
+
