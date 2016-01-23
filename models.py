@@ -170,18 +170,21 @@ class HistoricScore(Base):
         session.add(self)
         session.commit()
 
-
     @classmethod
     def get_or_none(cls,route_id,timestamp):
-        return HistoricScore.query.filter(and_(HistoricScore.route_id==route_id,HistoricScore.timestamp==timestamp)).first()
+        return cls.query.filter(and_(cls.route_id==route_id,cls.timestamp==timestamp)).first()
 
     @classmethod
     def get_scores_from_date(cls,route_id,timestamp):
-        return cls.query.filter(cls.route_id and cls.timestamp >= timestamp)
+        return cls.query.filter(and_(cls.route_id==route_id,cls.timestamp >= timestamp))
 
     @classmethod
     def get_scores_until_date(cls,route_id,timestamp):
-        return cls.query.filter(cls.route_id and cls.timestamp <= timestamp)
+        return cls.query.filter(and_(cls.route_id==route_id,cls.timestamp <= timestamp))
+
+    @classmethod
+    def get_scores_between_dates(cls,route_id,lower_timestamp,higher_timestamp):
+        return cls.query.filter(and_(cls.route_id==route_id,cls.timestamp >= lower_timestamp,cls.timestamp <= higher_timestamp)).all()
 
     def __str__(self):
         return "HistoricScore(route_id=%s,timestamp=%s,score%s)"%(self.route_id,self.timestamp,self.score)
