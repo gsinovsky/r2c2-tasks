@@ -121,10 +121,18 @@ def get_stream_score(source, dest, window=45, now=None, spoof=False):
 """
 def exponential_smoothing(scores,alpha):
 
-    smoothedScore = scores[0].score
+    smoothedScore = scores[0]
+    
+    if isinstance(smoothedScore,HistoricScore):
+        
+        smoothedScore = smoothedScore.score
 
-    for score in scores[1:]:
-        smoothedScore = alpha*score.score + (1-alpha)*smoothedScore
+        for score in scores[1:]:
+            smoothedScore = alpha*score.score + (1-alpha)*smoothedScore
+    else:
+        
+        for score in scores[1:]:
+            smoothedScore = alpha*score + (1-alpha)*smoothedScore
 
     return smoothedScore
 
@@ -217,11 +225,8 @@ def get_historic_score(origin, destination, startTime, endTime, alpha=0.3):
     scores.append(score)
 
     #Exponential smoothing of the score
-    smoothedScore = scores[0]
+    smoothedScore = exponential_smoothing(scores,alpha)
 
-    for score in scores[1:]:
-        smoothedScore = alpha*score + (1-alpha)*smoothedScore
-    
     return smoothedScore
 
 def phi(t):
