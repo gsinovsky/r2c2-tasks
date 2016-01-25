@@ -34,8 +34,8 @@ def count_routes():
     Tweets = retrieve_tweets();
     counter = Counter()
     
-    if not file_is_empty('counter.txt'):
-        with open('counter.txt', 'rb') as fp:
+    if not file_is_empty('./datasets/counter.txt'):
+        with open('./datasets/counter.txt') as fp:
             counter = pickle.load(fp)
     
     for tweet in Tweets:
