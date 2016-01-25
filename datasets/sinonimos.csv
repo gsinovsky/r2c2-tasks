@@ -1,10 +1,11 @@
+valle-coche,valle coche
+aut,autopista
+dl,del
+d,de
 acaba,acabo
 acaban,acabo
-las acacias,acacias
 accesos,acceso
-rampa de acceso,acceso
 accidentados,accidentado
-las adjuntas,adjuntas
 adj,adjuntas
 ff,francisco fajardo
 aff,francisco fajardo
@@ -16,14 +17,12 @@ nivel,altura
 cuidado,alerta
 peligro,alerta
 atencion,alerta
-atenciÛn,alerta
-ambos sentidos,ambos
+atenci√≥n,alerta
 ambossentidos,ambos
 ambasdirecciones,ambos
 anz,Anzoategui
 alternas,alterna
 arc,regional del centro
-autopista regional del centro,regional del centro
 atascado,atasco
 atascados,atasco
 atascada,atasco
@@ -33,12 +32,13 @@ autobus,auto
 autobuses,auto
 autobusete,auto
 buseta,auto
-camiÛn,auto
+camion,auto
+cami√≥n,auto
+carro,auto
 gandola,auto
 camioncito,auto
 camiones,auto
 camioneteros,auto
-pick up,auto
 autopistas,autopista
 autop,autopista
 autoridades,autoridad
@@ -46,7 +46,9 @@ avance,avanzando
 avanzan,avanzando
 avanzar,avanzando
 av,avenida
+av.,avenida
 ave,avenida
+pnm,panamericana
 avlibertador,avenida libertador
 libertador,avenida libertador
 avohiggins,avenida o'higgins
@@ -57,28 +59,40 @@ avlecuna,avenida lecuna
 lecuna,avenida lecuna
 avfcodemiranda,avenida francisco de miranda
 francisco de miranda,avenida francisco de miranda
-fco,avenida francisco de miranda
+fco,francisco
 fm,avenida francisco de miranda
 avpanteon,avenida panteon
-la panteon,avenida panteon
 avsucre,avenida sucre
 avuniversidad,avenida universidad
 avurdaneta,avenida urdaneta
-la urdaneta,avenida urdaneta
+avpaez,avenida paez
+paez,avenida paez
+paes,avenida paez
+lamas,avenida jose angel lamas
+avlamas,avenida jose angel lamas
+avbaralt,avenida baralt
+avbolivar,avenida bolivar
+avboyaca,avenida boyaca
+avcentral,avenida central
+avchivacoa,avenida chivacoa
+avmoran,avenida moran
+avmexico,avenida mexico
+avturumo,avenida turumo
+avvictoria,avenida victoria
+avcasanova,avenida casanova
 ayudar,ayuda
 ayudando,ayuda
 bajando,baja
 bajada,baja
 bajan,baja
-la bandera,bandera
 baral,baralt
 bqto,barquisimeto
 barqusimeto,barquisimeto
 brt,baruta
-boleÌta,boleita
-bolÌvar,bolivar
+bole√≠ta,boleita
+bol√≠var,bolivar
 boyaca,avenida boyaca
-boyac·,avenida boyaca
+boyac√°,avenida boyaca
 cotamil,avenida boyaca
 cmil,avenida boyaca
 cotamil,avenida boyaca
@@ -105,7 +119,7 @@ cerrados,cerrada
 cierre,cerrada
 charallavecua,charallave
 choques,choque
-colisiÛn,choque
+colisi√≥n,choque
 colision,choque
 accidente,choque
 accidnt,choque
@@ -113,8 +127,8 @@ choca,choque
 chocada,choque
 chocaron,choque
 choq,choque
-circunvalaciÛn,circunvalacion
-circulaciÛn,circulacion
+circunvalaci√≥n,circunvalacion
+circulaci√≥n,circulacion
 circular,circulacion
 circula,circulacion
 colas,cola
@@ -123,7 +137,7 @@ colita,cola
 colapsado,colapsada
 colapsados,colapsada
 colafuerte,colapsada
-colisiciÛn,choque
+colisici√≥n,choque
 colisiona,choque
 complica,complicada
 complicaciones,complicada
@@ -135,17 +149,18 @@ complico,complicada
 conductores,conductor
 congestionada,congestion
 congestionado,congestion
-congestiÛn,congestion
+congesti√≥n,congestion
 congestionamiento,congestion
 conjestionada,congestion
 country,country club
-demoliciÛn,demolicion
+cotamil,boyaca
+demolici√≥n,demolicion
 demoliciones,demolicion
 demoliendo,demolicion
 demoler,demolicion
 despejado,despejada
 depejada,despejada
-despuÈs,despues
+despu√©s,despues
 detenido,detenida
 detenidos,detenida
 detenidas,detenida
@@ -154,11 +169,10 @@ distrb,distribuidor
 distrib,distribuidor
 distribu,distribuidor
 dstribuidor,distribuidor
-dirrecciÛn,direccion
+dirrecci√≥n,direccion
 dir,direccion
 direcciones,direccion
-direcciÛn,direccion
-distribuidos metropolitano,distribuidor metropolitano
+direcci√≥n,direccion
 metropolitano,distribuidor metropolitano
 dmetropolitano,distribuidor metropolitano
 encunetado,encunetada
@@ -173,22 +187,21 @@ fluidez,fluida
 fluye,fluida
 ganadola,auto
 gandola,auto
-gma,autopista gran mariscal ayacucho
+gma,gran mariscal ayacucho
 guarena,guarenas
 hombri,hombrillo
 huecos,hueco
-incorporaciÛn,incoporarse
+incorporaci√≥n,incoporarse
 incorporacion,incoporarse
 incorporarse,incoporarse
 incoporase,incoporarse
 iut,iutrc
-rio,rio de janeiro
 janeiro,rio de janeiro
 llueve,lluvia
 lluvias,lluvia
 lloviznando,lluvia
 llovizna,lluvia
-maripÈrez,mariperez
+marip√©rez,mariperez
 mariche,mariches
 mejorando,mejorar
 mejora,mejorar
@@ -199,7 +212,7 @@ motorizados,motorizado
 moderada,moderado
 moderad,moderado
 mapote,mampote
-manifestaciÛn,manifestacion
+manifestaci√≥n,manifestacion
 manifestantes,manifestacion
 manifestaciones,manifestacion
 mcy,maracay
@@ -207,10 +220,10 @@ oe,oeste
 e,este
 parados,parada
 parado,parada
-pequeÒo,pequeÒa
-pequeÒas,pequeÒa
-pequeÒos,pequeÒa
-precauciÛn,precaucion
+peque√±o,peque√±a
+peque√±as,
+peque√±os,peque√±a
+precauci√≥n,precaucion
 precauciones,precaucion
 precau,precaucion
 precauci,precaucion
@@ -222,15 +235,14 @@ avppal,avenida principal
 ppla,avenida principal
 hdlp,hoyo de la puerta
 hdp,hoyo de la puerta
-redoma hoyo de la puerta,hoyo de la puerta
-recomendaciÛn,recomendacion
+recomendaci√≥n,recomendacion
 recomendable,recomendacion
 recomendamos,recomendacion
 recomienda,recomendacion
 recomiendo,recomendacion
 restrigen,restringido
 restringe,restringido
-restricciÛn,restringido
+restricci√≥n,restringido
 restriccion,restringido
 restricciones,restringido
 restringido,restringido
@@ -242,25 +254,24 @@ restablezcan,restablecer
 retrasos,retraso
 retardos,retardo
 retaso,retardo
-r·pido,rapida
+r√°pido,rapida
 rapido,rapida
-r·pida,rapida
+r√°pida,rapida
 ruises,ruices
 saliendo,salir
 salida,salir
 salids,salir
 salidas,salir
-sam·foro,semaforo
+sam√°foro,semaforo
 samaforos,semaforo
-sem·foros,semaforo
+sem√°foros,semaforo
 sebuca,sebucan
 srbucan,sebucan
 ssa,san antonio
 saa,san antonio
+sta,santa
 sectores,sector
-la simon,universidad simon bolivar
 usb,universidad simon bolivar
-universidad simÛn bolÌvar,universidad simon bolivar
 cola,trafico
 tranca,trafico
 transita,transitable
@@ -272,14 +283,14 @@ trancan,trancada
 trancando,trancada
 trancaron,trancada
 trancarse,trancada
-tr·nsito,transito
+tr√°nsito,transito
 transitando,transito
 transitar,transito
 transite,transito
 transitando,transito
 transitada,transito
 tuneles,tunel
-t˙nel,tunel
+t√∫nel,tunel
 terc,tercera
 tercer,tercera
 tercerca,tercera
@@ -291,8 +302,10 @@ universidades,universidad
 ucv,universidad central
 central,universidad central
 ucab,universidad catolica
-catÛlica,universidad catolica
+cat√≥lica,universidad catolica
 catolica,universidad catolica
+vallecoche,valle coche
+vc,valle coche
 veneziuela,venezuela
 vzla,venezuela
 venezue,venezuela
@@ -305,8 +318,8 @@ volcada,volcamiento
 volcad,volcamiento
 volteado,volcamiento
 voltear,volcamiento
-voltÛ,volcamiento
-vÌa,via
+volt√≥,volcamiento
+v√≠a,via
 viaducto,via
-vÌas,via
-vol˙men,volumen
+v√≠as,via
+vol√∫men,volumen
