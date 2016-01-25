@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import rfc822
 import csv
-
 from calendar import timegm
 from datetime import datetime
 from termcolor import cprint
+import os
 
 def parse_datetime_from_str(date_str):
     return datetime.fromtimestamp(timegm(rfc822.parsedate(date_str)))
-
+ 
 def parse_datetime(obj):
     return parse_datetime_from_str(obj.created_at)
 
@@ -22,6 +22,9 @@ def load_file(filename):
         reader = csv.reader(f)
         for row in reader:
             yield row
+
+def file_is_empty(path):
+    return os.stat(path).st_size==0
 
 def load_tweets(filename):
     '''Only load tweets, no labels'''
@@ -54,4 +57,18 @@ def load_words():
         s.add(x[0])
     for x in load_file('./datasets/apellidos-es.txt'):
         s.add(x[0])
+    return s
+
+def load_stop_words(stopWordsFile):
+    '''Loads the words for the corrector'''
+    s = set()
+    for word in load_file(stopWordsFile):
+        s.add(word[0])
+    return s
+
+def load_routes(routesFile):
+    '''Load the route diccionary'''
+    s = set()
+    for route in load_file(routesFile):
+        s.add(route[0])
     return s
