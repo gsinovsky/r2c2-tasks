@@ -9,6 +9,7 @@ from utils import load_synonyms, load_words
 import cPickle as pickle
 import os
 import re
+from graph import get_graph
 
 def retrieve_tweets():
     TWITTER_API_KEY = 'rOYPSNueekDLveKkpIgdU7HpH'
@@ -50,6 +51,41 @@ def count_routes():
         pickle.dump(counter, fp)
         fp.close()
 
+def get_top_sectors():
+    
+    synonyms = load_synonyms('./datasets/sinonimos.csv')
+    synonyms1 = load_synonyms('./datasets/sinonimos2.csv')
+    dictionary = load_words()
+    stop_words = load_stop_words('./datasets/stop-words.txt')
+    routes = load_routes('./datasets/routes.txt')
+
+    counter = Counter()
+
+    with open('counter.txt') as fp:
+        counter = pickle.load(fp)
+    
+    topRoutes = set(counter.elements())
+
+    sectorGraph = get_graph()
+
+    listRoutes = list(topRoutes)
+
+    topSectors = []
+
+    for avenue in listRoutes:
+
+        for (x,y) in sectorGraph.edges():
+           
+            routesEdge = sectorGraph.edge[x][y]['routes']
+           
+            for route in routesEdge:
+
+                processedRoute = process_tweet(route, synonyms, synonyms1, dictionary, stop_words)
+                
+                if (processedRoute.find(avenue) > -1):
+                    topSectors.append((x,y))
+
+    return topSectors
 
 if __name__ == '__main__':
     count_routes()

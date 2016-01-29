@@ -247,6 +247,7 @@ def find_path(origin, destination):
     visitedNodes = set()
     graph = get_graph()
 
+    now = datetime.now()
     now = datetime(2015,05,07,15,00)
     print "Current Date: %s\n" %(now)
 
