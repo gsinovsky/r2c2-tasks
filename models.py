@@ -74,7 +74,7 @@ class Tweet(Base):
     # identificador del tweet en twitter
     tweet_id = Column(String(convert_unicode=True), unique=True) # json: id
     # contenido del tweet
-    text = Column(String(150, convert_unicode=True))
+    text = Column(String(250, convert_unicode=True))
     # usuario que publica
     user_id = Column(Integer, ForeignKey('users.id'))
 
