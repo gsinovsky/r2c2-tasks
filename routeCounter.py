@@ -71,7 +71,7 @@ def get_top_sectors():
 
     listRoutes = list(topRoutes)
 
-    topSectors = {}
+    topSectors = []
     counter = 0
 
     for avenue in listRoutes:
@@ -81,10 +81,9 @@ def get_top_sectors():
                 processedRoute = process_tweet(route, synonyms, synonyms1, dictionary, stop_words)
 
                 if (processedRoute.find(avenue) > -1):
-                    topSectors[counter] = {'from': x, 'to': y}
-                    counter += 1
+                    topSectors.append({'from': x, 'to': y})
 
-    return json.dumps(topSectors, sort_keys=True)
+    return json.dumps(topSectors)
 
 if __name__ == '__main__':
     count_routes()
