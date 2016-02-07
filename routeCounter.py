@@ -72,7 +72,6 @@ def get_top_sectors():
     listRoutes = list(topRoutes)
 
     topSectors = []
-    counter = 0
 
     for avenue in listRoutes:
         for (x, y) in sectorGraph.edges():
