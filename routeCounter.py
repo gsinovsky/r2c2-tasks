@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import twitter
+import collections
 import __main__
 from utils import load_file, load_stop_words, load_routes, file_is_empty
 from collections import Counter
@@ -63,29 +64,27 @@ def get_top_sectors():
 
     with open('counter.txt') as fp:
         counter = pickle.load(fp)
-    
+
     topRoutes = set(counter.elements())
 
     sectorGraph = get_graph()
 
     listRoutes = list(topRoutes)
 
-    topSectors = []
+    topSectors = {}
+    counter = 0
 
     for avenue in listRoutes:
-
-        for (x,y) in sectorGraph.edges():
-           
+        for (x, y) in sectorGraph.edges():
             routesEdge = sectorGraph.edge[x][y]['routes']
-           
             for route in routesEdge:
-
                 processedRoute = process_tweet(route, synonyms, synonyms1, dictionary, stop_words)
-                
-                if (processedRoute.find(avenue) > -1):
-                    topSectors.append((x,y))
 
-    return topSectors
+                if (processedRoute.find(avenue) > -1):
+                    topSectors[counter] = {'from': x, 'to': y}
+                    counter += 1
+
+    return json.dumps(topSectors, sort_keys=True)
 
 if __name__ == '__main__':
     count_routes()
