@@ -1,0 +1,90 @@
+ccollections
+Counter
+p1
+((dp2
+S'baralt'
+p3
+I7
+sS'avenida victoria'
+p4
+I2
+sS'boyaca'
+p5
+I10
+sS'avenida francisco de miranda'
+p6
+I6
+sS'panamericana'
+p7
+I80
+sS'avenida andres bello'
+p8
+I4
+sS'avenida libertador'
+p9
+I5
+sS'rio de janeiro'
+p10
+I2
+sS'Aut.Prados del este'
+p11
+I4
+sS'regional del centro'
+p12
+I38
+sS'tamanaco'
+p13
+I2
+sS'petare santa lucia'
+p14
+I4
+sS'paseo colon'
+p15
+I2
+sS'colina'
+p16
+I1
+sS'los ilustres'
+p17
+I2
+sS'avenida bolivar'
+p18
+I1
+sS'caracas la guaira'
+p19
+I8
+sS'avenida baralt'
+p20
+I7
+sS'calle bolivar'
+p21
+I4
+sS'avenida panteon'
+p22
+I5
+sS'avenida romulo gallegos'
+p23
+I6
+sS'gran mariscal ayacucho'
+p24
+I7
+sS'Av.Prados del este'
+p25
+I2
+sS'Lom.Prados del este'
+p26
+I2
+sS'colon'
+p27
+I2
+sS'valle coche'
+p28
+I46
+sS'francisco fajardo'
+p29
+I73
+sS'paseo enrique eraso'
+p30
+I1
+stRp31
+.
