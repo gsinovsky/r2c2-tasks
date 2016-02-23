@@ -1,0 +1,9 @@
+{
+  "name": "r2c2-tasks",
+  "version": "0.0.1",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
+}
